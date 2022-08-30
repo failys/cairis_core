@@ -2,6 +2,7 @@ use mysql::*;
 use mysql::prelude::*;
 use crate::dimensions::valuetype::ValueType;
 use crate::dimensions::projectsettings::ProjectSettings;
+use crate::dimensions::environment::{Environment, CompositeEnvironments};
 use dotenv;
 use std::process::Command;
 use std::env;
@@ -48,6 +49,21 @@ impl MySQLDatabaseProxy {
     let new_id = self.new_id();
     let res : Result::<Option::<u128>> = self.conn.exec_first("call addValueType(:id,:name,:desc,:type,:score,:rat)", params!{
       "id" => new_id,
+      "name" => &vt.name,
+      "desc" => &vt.description,
+      "type" => &vt.vt_type,
+      "score" => &vt.score,
+      "rat" => &vt.rationale
+    });
+    match res {
+      Ok(_r) => {},
+      Err(err) => {println!("{:?}",err);}
+    }
+  }
+
+  pub fn update_value_type(&mut self, vt : &ValueType) {
+    let res : Result::<Option::<u128>> = self.conn.exec_first("call updateValueType(:id,:name,:desc,:type,:score,:rat)", params!{
+      "id" => &vt.id,
       "name" => &vt.name,
       "desc" => &vt.description,
       "type" => &vt.vt_type,
@@ -207,6 +223,51 @@ impl MySQLDatabaseProxy {
       Err(err) => {panic!("MySQL error getting settings - {:?}",err);}
     }
     return ps;
+  }
+
+  pub fn add_environment(&mut self, env : &Environment) {
+    let env_id = self.new_id();
+    let res : Result::<Option::<u128>> = self.conn.exec_first("call addEnvironment(:id,:name,:sc,:desc)", params!{
+      "id" => env_id,
+      "name" => &env.name,
+      "sc" => &env.short_code,
+      "desc" => &env.definition
+    });
+    match res {
+      Ok(_r) => {},
+      Err(err) => {panic!("MySQL error adding environment {:?}",err);}
+    }
+    
+    if env.environments.len() > 0 {
+      for ce in &env.environments.environments {
+        self.add_composite_environment(env.id,&ce);
+      }
+      self.add_composite_environment_properties(env_id,&env.environments);
+    }
+  }
+
+  fn add_composite_environment(&mut self, env_id : i128, ce: &String) {
+    let res : Result::<Option::<u128>> = self.conn.exec_first("call addCompositeEnvironment(:id,:c)", params!{
+      "id" => env_id,
+      "c" => ce
+    });
+    match res {
+      Ok(_r) => {},
+      Err(err) => {panic!("MySQL error adding composite environment {:?}",err);}
+    }
+  }
+
+  fn add_composite_environment_properties(&mut self, env_id : i128, comp_env : &CompositeEnvironments) {
+    let res : Result::<Option::<u128>> = self.conn.exec_first("call addCompositeEnvironmentProperties(:id,:dp,:oe)", params!{
+      "id" => env_id,
+      "dp" => comp_env.property.to_string(),
+      "oe" => &comp_env.overriding_environment_name
+    });
+    match res {
+      Ok(_r) => {},
+      Err(err) => {panic!("MySQL error adding composite environment properties {:?}",err);}
+    }
+
   }
 
 }

@@ -80,6 +80,7 @@ fn test_update_asset_environment_properties() {
 
 #[derive(Clone)]
 pub struct Asset {
+  id : i128,
   name : String,
   short_code : String,
   asset_type : String,
@@ -94,6 +95,7 @@ pub struct Asset {
 impl Asset {
   pub fn new(a_name : &String, s_code : &String, a_type : &String, i_c: bool) -> Asset {
     Asset{
+      id : -1,
       name : a_name.clone(), 
       short_code : s_code.clone(), 
       asset_type : a_type.clone(), 
@@ -167,5 +169,4 @@ fn test_asset_update_security_property() {
     assert_eq!(x.properties[SecurityProperty::Integrity as usize].value,QualitativeValue::High);
     assert_eq!(x.properties[SecurityProperty::Integrity as usize].rationale,"High I TBC".to_string());
   }
-
 }

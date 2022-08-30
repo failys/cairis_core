@@ -1,8 +1,7 @@
 use std::fmt;
-use crate::dimensions::valuetype::ValueType;
 
 #[derive(Clone,PartialEq,Debug)]
-enum CompositeProperty {
+pub enum CompositeProperty {
   Override = 0,
   Maximise = 1
 }
@@ -20,8 +19,8 @@ impl fmt::Display for CompositeProperty {
 
 #[derive(Clone)]
 pub struct CompositeEnvironments {
-  environments : Vec<String>,
-  property : CompositeProperty,
+  pub environments : Vec<String>,
+  pub property : CompositeProperty,
   pub overriding_environment_name : String,
 }
 
@@ -39,6 +38,10 @@ impl CompositeEnvironments {
       "Maximise" => CompositeProperty::Maximise,
       &_ => CompositeProperty::Override
     };
+  }
+
+  pub fn len(&self) -> usize {
+    self.environments.len()
   }
 }
 
@@ -76,20 +79,20 @@ fn test_update_duplication_property() {
 
 #[derive(Clone)]
 pub struct Environment {
+  pub id : i128,
   pub name : String,
-  short_code : String,
+  pub short_code : String,
   pub definition : String,
-  pub asset_values : [ValueType; 4],
   pub environments : CompositeEnvironments
 }
 
 impl Environment {
   pub fn new(env_name: &String, s_c : &String) -> Environment {
     Environment{ 
+      id : -1,
       name : env_name.clone(), 
       short_code : s_c.clone(), 
       definition : "".to_string(), 
-      asset_values : [ValueType::new(&"None".to_string(),&"".to_string(),&"asset_value".to_string()),ValueType::new(&"Low".to_string(),&"".to_string(),&"asset_value".to_string()),ValueType::new(&"Medium".to_string(),&"".to_string(),&"asset_value".to_string()),ValueType::new(&"High".to_string(),&"".to_string(),&"asset_value".to_string())],
       environments : CompositeEnvironments::new()
     }
   }
@@ -98,8 +101,7 @@ impl Environment {
 
 impl fmt::Display for Environment {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    let x = format!("[None: {}, Low: {}, Medium: {}, High: {}]",self.asset_values[0],self.asset_values[1],self.asset_values[2],self.asset_values[3]);
-    write!(f,"Name: {}, Short code: {}, Definition: {}, Asset Values : {}, Environments: {}",self.name,self.short_code,self.definition,x,self.environments.to_string())
+    write!(f,"Name: {}, Short code: {}, Definition: {}, Environments: {}",self.name,self.short_code,self.definition,self.environments.to_string())
   }
 }
 
